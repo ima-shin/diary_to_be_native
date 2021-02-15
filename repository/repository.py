@@ -6,15 +6,20 @@ from settings import *
 class DiariesRepository(object):
     """データベース接続用クラス"""
     def __init__(self, *args, **kwargs):
-        self.con = mysqldb.connect(
-            user=USER,
-            passwd=PASS,
-            host=HOST,
-            db=DB_NAME,
-            charset='utf8',
-        )
-        self.con.ping(reconnect=True)
-        self.con.autocommit = False
+        try:
+            self.con = mysqldb.connect(
+                user=USER,
+                passwd=PASS,
+                host=HOST,
+                db=DB_NAME,
+                charset='utf8',
+            )
+            self.con.ping(reconnect=True)
+            self.con.autocommit = False
+            self.has_error = False
+        except Exception as e:
+            print(e)
+            self.has_error = True
 
     # 全レコード取得（データがなければNoneを返す）
     def fetch_all(self) -> [Diary]:
@@ -31,7 +36,6 @@ class DiariesRepository(object):
                 diary.content = row['content']
                 diary.created_at = row['created_at']
                 diary.updated_at = row['updated_at']
-                diary.letter_length = row['letter_length']
 
                 diaries.append(diary)
             return diaries
@@ -50,23 +54,21 @@ class DiariesRepository(object):
             diary.content = entity['content']
             diary.created_at = entity['created_at']
             diary.updated_at = entity['updated_at']
-            diary.letter_length = entity['letter_length']
 
             return diary
 
     # レコードの新規追加
     def create(self, entity=None):
-        query = "INSERT INTO diaries (id, content, created_at, updated_at, letter_length) " \
-                "VALUES (%s, %s, %s, %s, %s);"
+        query = "INSERT INTO diaries (id, content, created_at, updated_at) " \
+                "VALUES (%s, %s, %s, %s);"
         with self.con.cursor() as cur:
-            cur.execute(query, (entity.id, entity.content, entity.created_at, entity.updated_at, entity.letter_length,))
+            cur.execute(query, (entity.id, entity.content, entity.created_at, entity.updated_at,))
             self.con.commit()
 
     # レコードの更新
     def update(self, entity=None):
-        query = "UPDATE diaries SET content = %s, updated_at = %s, letter_length = %s WHERE id = %s;"
-        letter_length = int(entity.letter_length)
+        query = "UPDATE diaries SET content = %s, updated_at = %s WHERE id = %s;"
         content = None if entity.content == '' else entity.content
         with self.con.cursor() as cur:
-            cur.execute(query, (content, entity.updated_at, letter_length, entity.id,))
+            cur.execute(query, (content, entity.updated_at, entity.id,))
             self.con.commit()

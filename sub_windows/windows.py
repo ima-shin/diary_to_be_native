@@ -22,7 +22,12 @@ class DiaryWindow(BaseWindow):
             Qt.Window | Qt.WindowCloseButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint
         )
         self.parent = parent
-        self.diary = self.repository.find_by_date(today)
+
+        if self.repository.has_error:
+            self.diary = Diary()
+            self.statusbar.showMessage('Failed to connect database')
+        else:
+            self.diary = self.repository.find_by_date(today)
 
         self.date_label, self.save_btn, self.last_updated_at, self.letter_length, self.textarea =\
             QLabel(today), QPushButton("保存"), QLabel(), QLabel(), QTextEdit()
@@ -113,7 +118,10 @@ class DiaryWindow(BaseWindow):
 
     # 新しい日記レコードを挿入
     def create_new_diary(self, empty=Diary()):
-        self.repository.create(empty)
+        if not self.repository.has_error:
+            self.repository.create(empty)
+        else:
+            self.statusbar.showMessage('Failed to connect database')
 
 
 class AutoSaveWorker(QThread):

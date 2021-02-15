@@ -1,5 +1,5 @@
 style = """
-QMainWindow {
+BaseWindow {
     background-color: #000000;
 }
 """

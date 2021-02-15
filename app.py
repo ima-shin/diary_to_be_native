@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QApplication, QLabel, QGridLayout, QCalendarWidget
+    QApplication, QLabel, QGridLayout, QCalendarWidget, QSizePolicy
 )
 from PyQt5.QtCore import QDate
 import sys
@@ -18,7 +18,11 @@ class App(BaseWindow):
         super().__init__()
         self.setWindowTitle('Diary To Be Native')
         self.setGeometry(int(w_w / 2 / 2), int(w_h / 2 / 2), 1000, 600)
+        self.setFixedSize(self.size())
         self.message_label = QLabel()
+        if self.repository.has_error:
+            self.statusbar.showMessage('Failed to get connection with database')
+            self.statusbar.show()
 
         self.init_ui()
 

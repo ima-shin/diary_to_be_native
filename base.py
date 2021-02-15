@@ -9,7 +9,7 @@ class BaseWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.statusBar()
+        self.statusbar = self.statusBar()
         self.setStyleSheet(style)
         self.progress = QProgressBar(self)
         self.menubar = self.menuBar()

@@ -13,7 +13,6 @@ class Diary(object):
         self.content = ''
         self.created_at = str(datetime.datetime.now(JST).strftime(DATE_FORMAT))
         self.updated_at = str(datetime.datetime.now(JST).strftime(DATE_FORMAT))
-        self.letter_length = 0
 
     def created_at_str(self):
         return str(self.created_at)
