@@ -22,12 +22,14 @@ class DiaryWindow(BaseWindow):
             Qt.Window | Qt.WindowCloseButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint
         )
         self.parent = parent
+        self.today = today
 
-        if self.repository.has_error:
+        self.diary = self.repository.find_by_date(today)
+        if self.diary is None:
+            # 指定した日付の日記が見つからなかった場合は新たに登録する
             self.diary = Diary()
-            self.statusbar.showMessage('Failed to connect database')
-        else:
-            self.diary = self.repository.find_by_date(today)
+            self.diary.written_date = self.today
+            self.create_new_diary(self.diary)
 
         self.date_label, self.save_btn, self.last_updated_at, self.letter_length, self.textarea =\
             QLabel(today), QPushButton("保存"), QLabel(), QLabel(), QTextEdit()
@@ -40,11 +42,6 @@ class DiaryWindow(BaseWindow):
 
     def init_layout(self):
 
-        if self.diary is None:
-            # なければ新しい日記を作成
-            self.diary = Diary()
-            self.create_new_diary()
-
         # 更新完了ボタン
         auto_saved_label = QLabel()
         auto_saved_label.setText('最終更新時刻: ')
@@ -53,7 +50,7 @@ class DiaryWindow(BaseWindow):
         self.save_btn.clicked.connect(self.update_diary)
 
         # 最終更新日時
-        self.last_updated_at.setText(self.diary.updated_at_str())
+        self.last_updated_at.setText(self.diary.updated_at)
 
         # テキストエリア
         self.textarea.textChanged.connect(self.count_text)
@@ -115,23 +112,25 @@ class DiaryWindow(BaseWindow):
         self.diary.letter_length = self.letter_length.text()
 
         self.repository.update(self.diary)
+        if self.repository.has_error:
+            self.statusBar().showMessage(self.repository.error_message)
 
     # 新しい日記レコードを挿入
-    def create_new_diary(self, empty=Diary()):
+    def create_new_diary(self, diary: Diary):
         if not self.repository.has_error:
-            self.repository.create(empty)
+            self.repository.create(diary)
         else:
             self.statusbar.showMessage('Failed to connect database')
 
 
-class AutoSaveWorker(QThread):
-    repository = DiariesRepository()
-
-    _signal = pyqtSignal(int)
-
-    """文字数カウントスレッド"""
-    def __init__(self, *args, **kwargs):
-        QThread.__init__(self, *args, **kwargs)
-
-    def run(self):
-        pass
+# class AutoSaveWorker(QThread):
+#     repository = DiariesRepository()
+#
+#     _signal = pyqtSignal(int)
+#
+#     """文字数カウントスレッド"""
+#     def __init__(self, *args, **kwargs):
+#         QThread.__init__(self, *args, **kwargs)
+#
+#     def run(self):
+#         pass
